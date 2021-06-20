@@ -1,6 +1,8 @@
 ﻿using BlazorHero.CleanArchitecture.Application.Enums;
 using BlazorHero.CleanArchitecture.Infrastructure.Models.Audit;
 using BlazorHero.CleanArchitecture.Infrastructure.Models.Identity;
+using Finbuckle.MultiTenant;
+using Finbuckle.MultiTenant.EntityFrameworkCore;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
@@ -10,14 +12,29 @@ using System.Threading.Tasks;
 
 namespace BlazorHero.CleanArchitecture.Infrastructure.Contexts
 {
-    public abstract class AuditableContext : IdentityDbContext<BlazorHeroUser, BlazorHeroRole, string, IdentityUserClaim<string>, IdentityUserRole<string>, IdentityUserLogin<string>, BlazorHeroRoleClaim, IdentityUserToken<string>>
+    public abstract class AuditableContext : MultiTenantIdentityDbContext<BlazorHeroUser, BlazorHeroRole, string, IdentityUserClaim<string>, IdentityUserRole<string>, IdentityUserLogin<string>, BlazorHeroRoleClaim, IdentityUserToken<string>>
     {
-        protected AuditableContext(DbContextOptions options) : base(options)
+        public AuditableContext(ITenantInfo tenantInfo) : base(tenantInfo ?? TenantStoreDbContext.DefaultTenant)
+        {
+            //TenantNotSetMode = TenantNotSetMode.Overwrite;
+            //TenantMismatchMode = TenantMismatchMode.Overwrite;
+        }
+        public AuditableContext(ITenantInfo tenantInfo, DbContextOptions options) : base(tenantInfo ?? TenantStoreDbContext.DefaultTenant, options)
         {
         }
-
         public DbSet<Audit> AuditTrails { get; set; }
 
+        protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
+        {
+            if (!string.IsNullOrEmpty(TenantInfo.ConnectionString))
+                optionsBuilder.UseSqlServer(TenantInfo.ConnectionString);
+            base.OnConfiguring(optionsBuilder);
+        }
+        protected override void OnModelCreating(ModelBuilder builder)
+        {
+            base.OnModelCreating(builder);
+            builder.Entity<Audit>().IsMultiTenant();
+        }
         public virtual async Task<int> SaveChangesAsync(string userId = null)
         {
             var auditEntries = OnBeforeSaveChanges(userId);

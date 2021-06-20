@@ -1,4 +1,5 @@
-﻿using BlazorHero.CleanArchitecture.Application.Interfaces.Repositories;
+﻿using BlazorHero.CleanArchitecture.Application.Interfaces.Caching;
+using BlazorHero.CleanArchitecture.Application.Interfaces.Repositories;
 using BlazorHero.CleanArchitecture.Application.Interfaces.Services;
 using BlazorHero.CleanArchitecture.Domain.Contracts;
 using BlazorHero.CleanArchitecture.Infrastructure.Contexts;
@@ -17,13 +18,12 @@ namespace BlazorHero.CleanArchitecture.Infrastructure.Repositories
         private readonly BlazorHeroContext _dbContext;
         private bool disposed;
         private Hashtable _repositories;
-        private readonly IAppCache _cache;
-
-        public UnitOfWork(BlazorHeroContext dbContext, ICurrentUserService currentUserService, IAppCache cache)
+        public IBlazorHeroCache Cache { get; }
+        public UnitOfWork(BlazorHeroContext dbContext, ICurrentUserService currentUserService, IBlazorHeroCache cache)
         {
             _dbContext = dbContext ?? throw new ArgumentNullException(nameof(dbContext));
             _currentUserService = currentUserService;
-            _cache = cache;
+            Cache = cache;
         }
 
         public IRepositoryAsync<TEntity, TId> Repository<TEntity>() where TEntity : AuditableEntity<TId>
@@ -53,7 +53,7 @@ namespace BlazorHero.CleanArchitecture.Infrastructure.Repositories
         public async Task<int> CommitAndRemoveCache(CancellationToken cancellationToken, string cacheKey)
         {
             var result =  await _dbContext.SaveChangesAsync(cancellationToken);
-            _cache.Remove(cacheKey);
+            Cache.Remove(cacheKey);
             return result;
         }
 

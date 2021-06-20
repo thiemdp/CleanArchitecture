@@ -57,7 +57,7 @@
             <param name="request"></param>
             <returns>Status 200 OK</returns>
         </member>
-        <member name="M:BlazorHero.CleanArchitecture.Server.Controllers.Identity.TokenController.Get(BlazorHero.CleanArchitecture.Application.Requests.Identity.TokenRequest)">
+        <member name="M:BlazorHero.CleanArchitecture.Server.Controllers.Identity.TokenController.Get(BlazorHero.CleanArchitecture.Application.Requests.Identity.TokenRequest,System.String)">
             <summary>
             Get Token (Email, Password)
             </summary>

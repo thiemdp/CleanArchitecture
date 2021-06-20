@@ -5,8 +5,10 @@ using BlazorHero.CleanArchitecture.Infrastructure.Helpers;
 using BlazorHero.CleanArchitecture.Infrastructure.Models.Identity;
 using BlazorHero.CleanArchitecture.Shared.Constants.Permission;
 using BlazorHero.CleanArchitecture.Shared.Constants.Role;
+using BlazorHero.CleanArchitecture.Shared.Constants.Tenant;
 using BlazorHero.CleanArchitecture.Shared.Constants.User;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Localization;
 using Microsoft.Extensions.Logging;
 using System;
@@ -23,6 +25,7 @@ namespace BlazorHero.CleanArchitecture.Infrastructure
         private readonly ILogger<DatabaseSeeder> _logger;
         private readonly IStringLocalizer<DatabaseSeeder> _localizer;
         private readonly BlazorHeroContext _db;
+        private readonly TenantStoreDbContext _tenantdb;
         private readonly UserManager<BlazorHeroUser> _userManager;
         private readonly RoleManager<BlazorHeroRole> _roleManager;
 
@@ -30,20 +33,34 @@ namespace BlazorHero.CleanArchitecture.Infrastructure
             UserManager<BlazorHeroUser> userManager,
             RoleManager<BlazorHeroRole> roleManager,
             BlazorHeroContext db,
+            TenantStoreDbContext tenantdb,
             ILogger<DatabaseSeeder> logger,
             IStringLocalizer<DatabaseSeeder> localizer)
         {
             _userManager = userManager;
             _roleManager = roleManager;
             _db = db;
+            _tenantdb = tenantdb;
             _logger = logger;
             _localizer = localizer;
         }
 
         public void Initialize()
         {
+            //migration
+            _db.Database.Migrate();
+            _tenantdb.Database.Migrate();
+            // create user administrator
             AddAdministrator();
             AddBasicUser();
+            _db.SaveChanges();
+        }
+
+        public void InitializeForTenant()
+        {
+            _db.Database.Migrate();
+            // create user administrator
+            AddAdministrator();
             _db.SaveChanges();
         }
 
@@ -79,7 +96,7 @@ namespace BlazorHero.CleanArchitecture.Infrastructure
                 }
                 adminRole = await _roleManager.FindByNameAsync(RoleConstants.AdministratorRole);
                 var RoleClaims = (await _roleManager.GetClaimsAsync(adminRole)).Select(c => c.Value).ToList();
-                string[] permissions = ClaimsHelper.GetAllPermissionValues();
+                string[] permissions = _db.TenantInfo.Identifier != TenantConstants.DefaultTenantId ? ClaimsHelper.GetAllTenantPermissionValues(): ClaimsHelper.GetAllMasterPermissionValues();
                 var NewClaims = permissions.Except(RoleClaims);
                 foreach (string claim in NewClaims)
                 {
@@ -131,5 +148,7 @@ namespace BlazorHero.CleanArchitecture.Infrastructure
                 }
             }).GetAwaiter().GetResult();
         }
+    
+    
     }
 }

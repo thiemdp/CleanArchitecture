@@ -42,9 +42,9 @@ namespace BlazorHero.CleanArchitecture.Client.Infrastructure.Managers.Identity.A
             return state.User;
         }
 
-        public async Task<IResult> Login(TokenRequest model)
+        public async Task<IResult> Login(TokenRequest model,string tenantIdentifier)
         {
-            var response = await _httpClient.PostAsJsonAsync(TokenEndpoints.Get, model);
+            var response = await _httpClient.PostAsJsonAsync(TokenEndpoints.Get(tenantIdentifier), model);
             var result = await response.ToResult<TokenResponse>();
             if (result.Succeeded)
             {

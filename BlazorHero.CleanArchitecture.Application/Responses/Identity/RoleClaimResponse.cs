@@ -9,5 +9,7 @@
         public string Description { get; set; }
         public string Group { get; set; }
         public bool Selected { get; set; }
+        public bool IsMaster { get; set; }
+        public bool IsTenant { get; set; }
     }
 }

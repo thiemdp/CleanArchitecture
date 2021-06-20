@@ -76,6 +76,22 @@ namespace BlazorHero.CleanArchitecture.Shared.Constants.Permission
             public const string Delete = "Permissions." + nameof(RoleClaims) + ".Delete";
         }
 
+        public static class Tenants
+        {
+            [Master]
+            [Description("View Tenants")]
+            public const string View = "Permissions." + nameof(Tenants) + ".View";
+            [Master]
+            [Description("Create a new Tenant")]
+            public const string Create = "Permissions." + nameof(Tenants) + ".Create";
+            [Master]
+            [Description("Edit existing Tenant")]
+            public const string Edit = "Permissions." + nameof(Tenants) + ".Edit";
+            [Master]
+            [Description("Delete any Tenant")]
+            public const string Delete = "Permissions." + nameof(Tenants) + ".Delete";
+        }
+
         public static class Communication
         {
             [Description("Chat with other user")]

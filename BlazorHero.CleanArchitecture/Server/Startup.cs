@@ -60,7 +60,7 @@ namespace BlazorHero.CleanArchitecture.Server
                 config.AssumeDefaultVersionWhenUnspecified = true;
                 config.ReportApiVersions = true;
             });
-            services.AddLazyCache();
+            services.AddCaching();
         }
 
         public void Configure(IApplicationBuilder app, IWebHostEnvironment env, IStringLocalizer<Startup> localizer)
@@ -78,8 +78,10 @@ namespace BlazorHero.CleanArchitecture.Server
             });
             app.UseRequestLocalizationByCulture();
             app.UseRouting();
+            app.UseMultiTenant();
             app.UseAuthentication();
             app.UseAuthorization();
+           
             app.UseHangfireDashboard("/jobs", new DashboardOptions
             {
                 DashboardTitle = localizer["BlazorHero Jobs"],

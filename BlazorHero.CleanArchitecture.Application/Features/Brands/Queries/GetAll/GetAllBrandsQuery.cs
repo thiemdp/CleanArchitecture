@@ -1,4 +1,5 @@
 ﻿using AutoMapper;
+using BlazorHero.CleanArchitecture.Application.Interfaces.Caching;
 using BlazorHero.CleanArchitecture.Application.Interfaces.Repositories;
 using BlazorHero.CleanArchitecture.Domain.Entities.Catalog;
 using BlazorHero.CleanArchitecture.Shared.Constants.Application;
@@ -23,19 +24,18 @@ namespace BlazorHero.CleanArchitecture.Application.Features.Brands.Queries.GetAl
     {
         private readonly IUnitOfWork<int> _unitOfWork;
         private readonly IMapper _mapper;
-        private readonly IAppCache _cache;
+        
 
-        public GetAllBrandsCachedQueryHandler(IUnitOfWork<int> unitOfWork, IMapper mapper, IAppCache cache)
+        public GetAllBrandsCachedQueryHandler(IUnitOfWork<int> unitOfWork, IMapper mapper)
         {
             _unitOfWork = unitOfWork;
             _mapper = mapper;
-            _cache = cache;
         }
 
         public async Task<Result<List<GetAllBrandsResponse>>> Handle(GetAllBrandsQuery request, CancellationToken cancellationToken)
         {
             Func<Task<List<Brand>>> getAllBrands = () => _unitOfWork.Repository<Brand>().GetAllAsync();
-            var brandList = await _cache.GetOrAddAsync(ApplicationConstants.Cache.GetAllBrandsCacheKey, getAllBrands);
+            var brandList = await _unitOfWork.Cache.GetOrAddAsync(ApplicationConstants.Cache.GetAllBrandsCacheKey, getAllBrands);
             var mappedBrands = _mapper.Map<List<GetAllBrandsResponse>>(brandList);
             return await Result<List<GetAllBrandsResponse>>.SuccessAsync(mappedBrands);
         }

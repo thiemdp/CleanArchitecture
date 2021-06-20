@@ -17,7 +17,7 @@ namespace BlazorHero.CleanArchitecture.Client.Infrastructure.Authentication
     {
         private readonly HttpClient _httpClient;
         private readonly ILocalStorageService _localStorage;
-
+        private AuthenticationState _authenticationStateCache;
         public BlazorHeroStateProvider(
             HttpClient httpClient,
             ILocalStorageService localStorage)
@@ -37,36 +37,40 @@ namespace BlazorHero.CleanArchitecture.Client.Infrastructure.Authentication
             var authState = Task.FromResult(new AuthenticationState(authenticatedUser));
 
             NotifyAuthenticationStateChanged(authState);
+            _authenticationStateCache = null;
         }
 
         public void MarkUserAsLoggedOut()
         {
             var anonymousUser = new ClaimsPrincipal(new ClaimsIdentity());
             var authState = Task.FromResult(new AuthenticationState(anonymousUser));
-
             NotifyAuthenticationStateChanged(authState);
+            _authenticationStateCache = null;
         }
 
         public async Task<ClaimsPrincipal> GetAuthenticationStateProviderUserAsync()
         {
-            var state = await this.GetAuthenticationStateAsync();
-            var authenticationStateProviderUser = state.User;
-            return authenticationStateProviderUser;
+                var state = await this.GetAuthenticationStateAsync();
+                return state.User;
         }
 
-        public ClaimsPrincipal AuthenticationStateUser { get; set; }
+       // public ClaimsPrincipal AuthenticationStateUser { get; set; }
 
         public override async Task<AuthenticationState> GetAuthenticationStateAsync()
         {
-            var savedToken = await _localStorage.GetItemAsync<string>(StorageConstants.Local.AuthToken);
-            if (string.IsNullOrWhiteSpace(savedToken))
+            if (_authenticationStateCache == null)
             {
-                return new AuthenticationState(new ClaimsPrincipal(new ClaimsIdentity()));
+                var savedToken = await _localStorage.GetItemAsync<string>(StorageConstants.Local.AuthToken);
+                if (string.IsNullOrWhiteSpace(savedToken))
+                {
+                    _authenticationStateCache = new AuthenticationState(new ClaimsPrincipal(new ClaimsIdentity()));
+                    return _authenticationStateCache;
+                }
+                _httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", savedToken);
+                _authenticationStateCache = new AuthenticationState(new ClaimsPrincipal(new ClaimsIdentity(GetClaimsFromJwt(savedToken), "jwt")));
+               // AuthenticationStateUser = _authenticationStateCache.User;
             }
-            _httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", savedToken);
-            var state = new AuthenticationState(new ClaimsPrincipal(new ClaimsIdentity(GetClaimsFromJwt(savedToken), "jwt")));
-            AuthenticationStateUser = state.User;
-            return state;
+            return _authenticationStateCache;
         }
 
         private IEnumerable<Claim> GetClaimsFromJwt(string jwt)

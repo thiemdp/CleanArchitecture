@@ -35,6 +35,11 @@ namespace BlazorHero.CleanArchitecture.Infrastructure.Migrations
                     b.Property<string>("Message")
                         .HasColumnType("nvarchar(max)");
 
+                    b.Property<string>("TenantId")
+                        .IsRequired()
+                        .HasMaxLength(64)
+                        .HasColumnType("nvarchar(64)");
+
                     b.Property<string>("ToUserId")
                         .HasColumnType("nvarchar(450)");
 
@@ -45,6 +50,9 @@ namespace BlazorHero.CleanArchitecture.Infrastructure.Migrations
                     b.HasIndex("ToUserId");
 
                     b.ToTable("ChatHistory");
+
+                    b
+                        .HasAnnotation("Finbuckle:MultiTenant", true);
                 });
 
             modelBuilder.Entity("BlazorHero.CleanArchitecture.Domain.Entities.Catalog.Brand", b =>
@@ -75,9 +83,17 @@ namespace BlazorHero.CleanArchitecture.Infrastructure.Migrations
                     b.Property<decimal>("Tax")
                         .HasColumnType("decimal(18,2)");
 
+                    b.Property<string>("TenantId")
+                        .IsRequired()
+                        .HasMaxLength(64)
+                        .HasColumnType("nvarchar(64)");
+
                     b.HasKey("Id");
 
                     b.ToTable("Brands");
+
+                    b
+                        .HasAnnotation("Finbuckle:MultiTenant", true);
                 });
 
             modelBuilder.Entity("BlazorHero.CleanArchitecture.Domain.Entities.Catalog.Product", b =>
@@ -117,11 +133,19 @@ namespace BlazorHero.CleanArchitecture.Infrastructure.Migrations
                     b.Property<decimal>("Rate")
                         .HasColumnType("decimal(18,2)");
 
+                    b.Property<string>("TenantId")
+                        .IsRequired()
+                        .HasMaxLength(64)
+                        .HasColumnType("nvarchar(64)");
+
                     b.HasKey("Id");
 
                     b.HasIndex("BrandId");
 
                     b.ToTable("Products");
+
+                    b
+                        .HasAnnotation("Finbuckle:MultiTenant", true);
                 });
 
             modelBuilder.Entity("BlazorHero.CleanArchitecture.Domain.Entities.Document", b =>
@@ -149,6 +173,11 @@ namespace BlazorHero.CleanArchitecture.Infrastructure.Migrations
                     b.Property<DateTime?>("LastModifiedOn")
                         .HasColumnType("datetime2");
 
+                    b.Property<string>("TenantId")
+                        .IsRequired()
+                        .HasMaxLength(64)
+                        .HasColumnType("nvarchar(64)");
+
                     b.Property<string>("Title")
                         .HasColumnType("nvarchar(max)");
 
@@ -158,6 +187,9 @@ namespace BlazorHero.CleanArchitecture.Infrastructure.Migrations
                     b.HasKey("Id");
 
                     b.ToTable("Documents");
+
+                    b
+                        .HasAnnotation("Finbuckle:MultiTenant", true);
                 });
 
             modelBuilder.Entity("BlazorHero.CleanArchitecture.Infrastructure.Models.Audit.Audit", b =>
@@ -185,6 +217,11 @@ namespace BlazorHero.CleanArchitecture.Infrastructure.Migrations
                     b.Property<string>("TableName")
                         .HasColumnType("nvarchar(max)");
 
+                    b.Property<string>("TenantId")
+                        .IsRequired()
+                        .HasMaxLength(64)
+                        .HasColumnType("nvarchar(64)");
+
                     b.Property<string>("Type")
                         .HasColumnType("nvarchar(max)");
 
@@ -194,6 +231,9 @@ namespace BlazorHero.CleanArchitecture.Infrastructure.Migrations
                     b.HasKey("Id");
 
                     b.ToTable("AuditTrails");
+
+                    b
+                        .HasAnnotation("Finbuckle:MultiTenant", true);
                 });
 
             modelBuilder.Entity("BlazorHero.CleanArchitecture.Infrastructure.Models.Identity.BlazorHeroRole", b =>
@@ -228,14 +268,22 @@ namespace BlazorHero.CleanArchitecture.Infrastructure.Migrations
                         .HasMaxLength(256)
                         .HasColumnType("nvarchar(256)");
 
+                    b.Property<string>("TenantId")
+                        .IsRequired()
+                        .HasMaxLength(64)
+                        .HasColumnType("nvarchar(64)");
+
                     b.HasKey("Id");
 
-                    b.HasIndex("NormalizedName")
+                    b.HasIndex("NormalizedName", "TenantId")
                         .IsUnique()
                         .HasDatabaseName("RoleNameIndex")
                         .HasFilter("[NormalizedName] IS NOT NULL");
 
                     b.ToTable("Roles", "Identity");
+
+                    b
+                        .HasAnnotation("Finbuckle:MultiTenant", true);
                 });
 
             modelBuilder.Entity("BlazorHero.CleanArchitecture.Infrastructure.Models.Identity.BlazorHeroRoleClaim", b =>
@@ -283,6 +331,7 @@ namespace BlazorHero.CleanArchitecture.Infrastructure.Migrations
             modelBuilder.Entity("BlazorHero.CleanArchitecture.Infrastructure.Models.Identity.BlazorHeroUser", b =>
                 {
                     b.Property<string>("Id")
+                        .ValueGeneratedOnAdd()
                         .HasColumnType("nvarchar(450)");
 
                     b.Property<int>("AccessFailedCount")
@@ -361,6 +410,11 @@ namespace BlazorHero.CleanArchitecture.Infrastructure.Migrations
                     b.Property<string>("SecurityStamp")
                         .HasColumnType("nvarchar(max)");
 
+                    b.Property<string>("TenantId")
+                        .IsRequired()
+                        .HasMaxLength(64)
+                        .HasColumnType("nvarchar(64)");
+
                     b.Property<bool>("TwoFactorEnabled")
                         .HasColumnType("bit");
 
@@ -373,12 +427,15 @@ namespace BlazorHero.CleanArchitecture.Infrastructure.Migrations
                     b.HasIndex("NormalizedEmail")
                         .HasDatabaseName("EmailIndex");
 
-                    b.HasIndex("NormalizedUserName")
+                    b.HasIndex("NormalizedUserName", "TenantId")
                         .IsUnique()
                         .HasDatabaseName("UserNameIndex")
                         .HasFilter("[NormalizedUserName] IS NOT NULL");
 
                     b.ToTable("Users", "Identity");
+
+                    b
+                        .HasAnnotation("Finbuckle:MultiTenant", true);
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityUserClaim<string>", b =>
@@ -489,11 +546,12 @@ namespace BlazorHero.CleanArchitecture.Infrastructure.Migrations
 
             modelBuilder.Entity("BlazorHero.CleanArchitecture.Infrastructure.Models.Identity.BlazorHeroRoleClaim", b =>
                 {
-                    b.HasOne("BlazorHero.CleanArchitecture.Infrastructure.Models.Identity.BlazorHeroRole", null)
-                        .WithMany()
+                    b.HasOne("BlazorHero.CleanArchitecture.Infrastructure.Models.Identity.BlazorHeroRole", "Role")
+                        .WithMany("RoleClaims")
                         .HasForeignKey("RoleId")
-                        .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
+
+                    b.Navigation("Role");
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityUserClaim<string>", b =>
@@ -536,6 +594,11 @@ namespace BlazorHero.CleanArchitecture.Infrastructure.Migrations
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
+                });
+
+            modelBuilder.Entity("BlazorHero.CleanArchitecture.Infrastructure.Models.Identity.BlazorHeroRole", b =>
+                {
+                    b.Navigation("RoleClaims");
                 });
 
             modelBuilder.Entity("BlazorHero.CleanArchitecture.Infrastructure.Models.Identity.BlazorHeroUser", b =>

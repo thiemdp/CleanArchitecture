@@ -39,6 +39,12 @@ namespace BlazorHero.CleanArchitecture.Infrastructure.Helpers
                     {
                         applicationPermission.Description = permission.GetValue(null).ToString().Replace('.', ' ');
                     }
+                    MasterAttribute[] masterAttributes = (MasterAttribute[])permission.GetCustomAttributes(typeof(MasterAttribute), false);
+                    applicationPermission.IsMaster = masterAttributes != null && masterAttributes.Length > 0;
+
+                    TenantAttribute[] tenantAttributes = (TenantAttribute[])permission.GetCustomAttributes(typeof(TenantAttribute), false);
+                    applicationPermission.IsTenant = tenantAttributes != null && tenantAttributes.Length > 0;
+
                     allPermissions.Add(applicationPermission);
                 }
                 AllPermissions = allPermissions.AsReadOnly();
@@ -47,6 +53,14 @@ namespace BlazorHero.CleanArchitecture.Infrastructure.Helpers
         public static string[] GetAllPermissionValues()
         {
             return AllPermissions.Select(p => p.Value).ToArray();
+        }
+        public static string[] GetAllMasterPermissionValues()
+        {
+            return AllPermissions.Where(x=>x.IsMaster ||(!x.IsMaster && !x.IsTenant)).Select(p => p.Value).ToArray();
+        }
+        public static string[] GetAllTenantPermissionValues()
+        {
+            return AllPermissions.Where(x => x.IsTenant || (!x.IsMaster && !x.IsTenant)).Select(p => p.Value).ToArray();
         }
         public static async Task<IdentityResult> AddPermissionClaim(this RoleManager<BlazorHeroRole> roleManager, BlazorHeroRole role, string permission)
         {

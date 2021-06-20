@@ -17,11 +17,19 @@
                 <MudText Typo="Typo.h4">@_localizer["Title"]</MudText>
             </div>
         </MudItem>
-        <MudItem xs="12">
+        @*<MudItem xs="12">
             <div class="d-flex justify-center">
                 <MudText>@_localizer["Description"]</MudText>
             </div>
-        </MudItem>
+        </MudItem>*@
+        @if (_isTenantMaster)
+        {
+            <MudItem xs="12">
+                <div class="d-flex justify-center">
+                    <MudText>@_localizer["Current Tenant"] <MudLink @onclick="OpenChangeTenantModal">@_tenantIdentifier</MudLink></MudText>
+                </div>
+            </MudItem>
+        }
         <MudItem xs="12">
             <div class="d-flex justify-center">
                 <MudText>@_localizer["Don't have an account?"] <MudLink Href="/register">@_localizer["Register here"]</MudLink></MudText>
@@ -50,3 +58,20 @@
         </MudItem>
     </MudGrid>
 </EditForm>
+
+<MudDialog @bind-IsVisible="_visible">
+    <TitleContent>
+        <MudText Typo="Typo.h6">
+            <MudIcon Icon="@Icons.Material.Filled.Edit" Class="mr-3 mb-n1" />
+            @_localizer["Change Tenant"]
+        </MudText>
+    </TitleContent>
+    <DialogContent>
+        <MudTextField @bind-Value="_tenantIdentifierChange" Label="@_localizer["Identifier"]" />
+        <MudCheckBox @bind-Checked="_rememberTenant" Color="@Color.Primary" Label="@_localizer["Remember tenant"]"></MudCheckBox>
+    </DialogContent>
+    <DialogActions>
+        <MudButton Variant="Variant.Filled" Color="Color.Error" OnClick="CloseChangeTenantModal" Class="px-10">@_localizer["Close"]</MudButton>
+        <MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="ChangeTenant" Class="px-10">@_localizer["Change"]</MudButton>
+    </DialogActions>
+</MudDialog>

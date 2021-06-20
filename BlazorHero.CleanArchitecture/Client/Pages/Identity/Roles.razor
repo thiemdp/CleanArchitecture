@@ -13,10 +13,12 @@
 <MudTable Hover="true" Elevation="25" Items="_roleList" Dense="@_dense" Bordered="@_bordered" Striped="@_striped" Filter="new Func<RoleResponse, bool>(Search)" @bind-role="_role">
     <ToolBarContent>
         <div class="justify-center mud-text-align-center">
-            @if (_canCreateRoles)
-            {
+            @*@if (_canCreateRoles)
+            {*@
+            <AuthorizedComponent Policy="@Permissions.Roles.Create">
                 <MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="(() => InvokeModal())">@_localizer["Create"]</MudButton>
-            }
+            </AuthorizedComponent>
+          @* }*@
             <MudButton Variant="Variant.Filled" OnClick="GetRolesAsync" Color="Color.Secondary">@_localizer["Reload"]</MudButton>
         </div>
         <MudToolBarSpacer />

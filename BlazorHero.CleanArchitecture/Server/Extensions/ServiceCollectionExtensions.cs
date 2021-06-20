@@ -6,6 +6,7 @@ using BlazorHero.CleanArchitecture.Application.Interfaces.Services.Identity;
 using BlazorHero.CleanArchitecture.Infrastructure;
 using BlazorHero.CleanArchitecture.Infrastructure.Contexts;
 using BlazorHero.CleanArchitecture.Infrastructure.Models.Identity;
+using BlazorHero.CleanArchitecture.Infrastructure.Models.Tenant;
 using BlazorHero.CleanArchitecture.Infrastructure.Repositories;
 using BlazorHero.CleanArchitecture.Infrastructure.Services;
 using BlazorHero.CleanArchitecture.Infrastructure.Services.Identity;
@@ -40,6 +41,13 @@ using System.Reflection;
 using System.Security.Claims;
 using System.Text;
 using System.Threading.Tasks;
+using Finbuckle.MultiTenant;
+using BlazorHero.CleanArchitecture.Shared.Constants.Tenant;
+using BlazorHero.CleanArchitecture.Application.Interfaces.Services.Tenant;
+using BlazorHero.CleanArchitecture.Infrastructure.Tenant;
+using Microsoft.Extensions.Primitives;
+using BlazorHero.CleanArchitecture.Application.Interfaces.Caching;
+using BlazorHero.CleanArchitecture.Infrastructure.Caching;
 
 namespace BlazorHero.CleanArchitecture.Server.Extensions
 {
@@ -152,18 +160,41 @@ namespace BlazorHero.CleanArchitecture.Server.Extensions
             });
         }
 
-        internal static IServiceCollection AddDatabase(
-            this IServiceCollection services,
+        internal static IServiceCollection AddDatabase(this IServiceCollection services,
             IConfiguration configuration)
-            => services
+        {
+            services
+              .AddDbContext<TenantStoreDbContext>(options => options
+              .UseSqlServer(configuration.GetConnectionString("DefaultConnection")));
+            services.AddMultiTenant<BlazorHeroTenant>()
+                    .WithEFCoreStore<TenantStoreDbContext, BlazorHeroTenant>()
+                     .WithHostStrategy()//__Tenant__.*
+                    .WithDelegateStrategy(async context =>
+                    {
+                        var httpContext = context as HttpContext;
+                        if (httpContext == null)
+                            return null;
+
+                        httpContext.Request.Query.TryGetValue("__tenant__", out StringValues tenantIdParam);
+                        return tenantIdParam.ToString();
+                    })
+                    .WithClaimStrategy()
+                  
+                    .WithStaticStrategy(TenantConstants.DefaultTenantId)
+            ;
+            services
                 .AddDbContext<BlazorHeroContext>(options => options
                     .UseSqlServer(configuration.GetConnectionString("DefaultConnection")))
             .AddTransient<IDatabaseSeeder, DatabaseSeeder>();
+
+            return services;
+        }
 
         internal static IServiceCollection AddCurrentUserService(this IServiceCollection services)
         {
             services.AddHttpContextAccessor();
             services.AddScoped<ICurrentUserService, CurrentUserService>();
+            services.AddScoped<ICurrentTenantService, CurrentTenantService>();
             return services;
         }
 
@@ -205,6 +236,8 @@ namespace BlazorHero.CleanArchitecture.Server.Extensions
             services.AddTransient<IChatService, ChatService>();
             services.AddTransient<IUploadService, UploadService>();
             services.AddTransient<IAuditService, AuditService>();
+            services.AddTransient<ITenantService, TenantService>();
+            
             services.AddScoped<IExcelService, ExcelService>();
             return services;
         }
@@ -295,6 +328,13 @@ namespace BlazorHero.CleanArchitecture.Server.Extensions
                     }
                 }
             });
+            return services;
+        }
+
+        internal static IServiceCollection AddCaching(this IServiceCollection services)
+        {
+            services.AddLazyCache();
+            services.AddScoped<IBlazorHeroCache, BlazorHeroCache>();
             return services;
         }
     }

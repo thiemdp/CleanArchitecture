@@ -7,7 +7,7 @@ namespace BlazorHero.CleanArchitecture.Client.Infrastructure.Managers.Identity.A
 {
     public interface IAuthenticationManager : IManager
     {
-        Task<IResult> Login(TokenRequest model);
+        Task<IResult> Login(TokenRequest model,string tenantIdentifier);
 
         Task<IResult> Logout();
 

@@ -16,6 +16,7 @@ using System.Security.Cryptography;
 using System.Text;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Localization;
+using BlazorHero.CleanArchitecture.Application.Interfaces.Services;
 
 namespace BlazorHero.CleanArchitecture.Infrastructure.Services.Identity
 {
@@ -28,17 +29,18 @@ namespace BlazorHero.CleanArchitecture.Infrastructure.Services.Identity
         private readonly AppConfiguration _appConfig;
         private readonly SignInManager<BlazorHeroUser> _signInManager;
         private readonly IStringLocalizer<IdentityService> _localizer;
-
+        private readonly ICurrentTenantService _curentTenantService;
         public IdentityService(
             UserManager<BlazorHeroUser> userManager, RoleManager<BlazorHeroRole> roleManager,
             IOptions<AppConfiguration> appConfig, SignInManager<BlazorHeroUser> signInManager,
-            IStringLocalizer<IdentityService> localizer)
+            IStringLocalizer<IdentityService> localizer, ICurrentTenantService curentTenantService)
         {
             _userManager = userManager;
             _roleManager = roleManager;
             _appConfig = appConfig.Value;
             _signInManager = signInManager;
             _localizer = localizer;
+            _curentTenantService = curentTenantService;
         }
 
         public async Task<Result<TokenResponse>> LoginAsync(TokenRequest model)
@@ -118,7 +120,9 @@ namespace BlazorHero.CleanArchitecture.Infrastructure.Services.Identity
                 new(ClaimTypes.Email, user.Email),
                 new(ClaimTypes.Name, user.FirstName),
                 new(ClaimTypes.Surname, user.LastName),
-                new(ClaimTypes.MobilePhone, user.PhoneNumber ?? string.Empty)
+                new(ClaimTypes.MobilePhone, user.PhoneNumber ?? string.Empty),
+                new("__tenant__", _curentTenantService.Identifier ?? string.Empty)
+                
             }
             .Union(userClaims)
             .Union(roleClaims)

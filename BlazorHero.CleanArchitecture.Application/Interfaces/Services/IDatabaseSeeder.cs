@@ -3,5 +3,6 @@
     public interface IDatabaseSeeder
     {
         void Initialize();
+        void InitializeForTenant();
     }
 }

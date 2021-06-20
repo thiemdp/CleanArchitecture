@@ -24,7 +24,7 @@ namespace BlazorHero.CleanArchitecture.Server.Controllers.Identity
         /// <param name="model"></param>
         /// <returns>Status 200 OK</returns>
         [HttpPost]
-        public async Task<ActionResult> Get(TokenRequest model)
+        public async Task<ActionResult> Get(TokenRequest model,string __tenant__)
         {
             var response = await _identityService.LoginAsync(model);
             return Ok(response);
