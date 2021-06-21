@@ -1,0 +1,50 @@
+﻿@inject Microsoft.Extensions.Localization.IStringLocalizer<AddEditTenantModal> _localizer
+@using BlazorHero.CleanArchitecture.Shared.Constants.Tenant
+<EditForm Model="@Tenant" OnValidSubmit="SaveAsync">
+    <FluentValidationValidator @ref="_fluentValidationValidator" />
+    <MudDialog>
+        <TitleContent>
+            @{
+                if (string.IsNullOrEmpty(Tenant.Id ))
+                {
+                    <MudText Typo="Typo.h6">
+                        <MudIcon Icon="@Icons.Material.Filled.Add" Class="mr-3 mb-n1" />
+                        @_localizer["Add Tenant"]
+                    </MudText>
+                }
+                else
+                {
+                    <MudText Typo="Typo.h6">
+                        <MudIcon Icon="@Icons.Material.Filled.Update" Class="mr-3 mb-n1" />
+                        @_localizer["Update Tenant"]
+                    </MudText>
+                }
+            }
+        </TitleContent>
+        <DialogContent>
+            <MudTextField For="@(() => Tenant.Identifier)" @bind-Value="Tenant.Identifier" Label="@_localizer["Identifier"]" />
+            <MudTextField For="@(() => Tenant.Name)" @bind-Value="Tenant.Name" Label="@_localizer["Tenant Name"]" />
+            @*<MudSelect For="@(() => Tenant.DatabaseType)" @bind-Value="Tenant.DatabaseType" Label="@_localizer["Database Type"]">
+                @foreach (TenantDBType item in Enum.GetValues(typeof(TenantDBType)))
+                {
+                    <MudSelectItem  T="TenantDBType?" Value="@item">@item</MudSelectItem>
+                }
+            </MudSelect>*@
+            <MudTextField For="@(() => Tenant.ConnectionString)" @bind-Value="Tenant.ConnectionString" Label="@_localizer["ConnectionString"]" />
+            <MudCheckBox For="@(() => Tenant.IsActive)" @bind-Checked="Tenant.IsActive" Label="@_localizer["Active"]" />
+        </DialogContent>
+        <DialogActions>
+            <MudButton Variant="Variant.Filled" OnClick="Cancel">@_localizer["Cancel"]</MudButton>
+            @{
+                if (string.IsNullOrEmpty(Tenant.Id))
+                {
+                    <MudButton Variant="Variant.Filled" ButtonType="ButtonType.Submit" Disabled="@(!Validated)" Color="Color.Success">@_localizer["Save Role"]</MudButton>
+                }
+                else
+                {
+                    <MudButton Variant="Variant.Filled" ButtonType="ButtonType.Submit" Disabled="@(!Validated)" Color="Color.Secondary">@_localizer["Update Role"]</MudButton>
+                }
+            }
+        </DialogActions>
+    </MudDialog>
+</EditForm>
